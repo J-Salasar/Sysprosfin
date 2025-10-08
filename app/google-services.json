@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "391253171735",
+    "firebase_url": "https://sysprosfin-581ef-default-rtdb.firebaseio.com",
+    "project_id": "sysprosfin-581ef",
+    "storage_bucket": "sysprosfin-581ef.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:391253171735:android:491fde503378d248340652",
+        "android_client_info": {
+          "package_name": "xyz.salasar.prestamopantera"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC4qtTQlpVpJedcCUgF4ezQjeyEFuAZXoQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
