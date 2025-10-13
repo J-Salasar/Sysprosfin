@@ -76,8 +76,8 @@ public class MainActivity extends AppCompatActivity {
         }
         FirebaseApp.initializeApp(this);
         FirebaseAppCheck firebaseAppCheck = FirebaseAppCheck.getInstance();
-        //firebaseAppCheck.installAppCheckProviderFactory(DebugAppCheckProviderFactory.getInstance());
-        firebaseAppCheck.installAppCheckProviderFactory(PlayIntegrityAppCheckProviderFactory.getInstance());
+        firebaseAppCheck.installAppCheckProviderFactory(DebugAppCheckProviderFactory.getInstance());
+        //firebaseAppCheck.installAppCheckProviderFactory(PlayIntegrityAppCheckProviderFactory.getInstance());
         firebaseAppCheck.getAppCheckToken(true).addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         String token = task.getResult().getToken();

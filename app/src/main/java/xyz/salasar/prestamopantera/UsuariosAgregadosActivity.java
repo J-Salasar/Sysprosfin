@@ -35,7 +35,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,15 +48,17 @@ import xyz.salasar.prestamopantera.configuracion.UsuarioAgregadoAdaptador;
 
 public class UsuariosAgregadosActivity extends AppCompatActivity {
     private String usuario, cuentaN, empresaN,url,cifrado,rangoN;
-    private ImageButton volver,recargar,buscar;
+    private ImageButton volver,recargar,buscar,enviarfecha;
     private ListView listaUsuario;
-    private EditText nombretxt;
+    private EditText nombretxt,fechalimite;
     private ArrayList<UsuarioAgregadoAdaptador> clientes;
     private ArrayList<String> nombreC,apellidoC,cuentaC,rangoC,creditoC,capitalC,interesesC,usuarioC;
     private ConstraintLayout panelusuarioAgregado;
     private TextView notificacionNada,activos,ganancias;
     private String[] b={"0"};
-    private String deudaD,interesesD;
+    private String deudaD,interesesD,fechaC;
+    private SimpleDateFormat formatoEntrada=new SimpleDateFormat("dd/MM/yyyy");
+    private SimpleDateFormat formatoSalida=new SimpleDateFormat("yyyy-MM-dd");
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,6 +86,21 @@ public class UsuariosAgregadosActivity extends AppCompatActivity {
         activos=findViewById(R.id.activos55);
         ganancias=findViewById(R.id.ganancias55);
         panelusuarioAgregado.removeView(notificacionNada);
+        fechalimite=findViewById(R.id.fechalimite55);
+        enviarfecha=findViewById(R.id.enviarfecha55);
+        enviarfecha.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try{
+                    Date fechaf=formatoEntrada.parse(fechalimite.getText().toString());
+                    fechaC=formatoSalida.format(fechaf);
+                    cambiarFecha(fechaC);
+                }
+                catch (ParseException e){
+                    Toast.makeText(getApplicationContext(),"Fecha no valida",Toast.LENGTH_LONG).show();
+                }
+            }
+        });
         buscar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -135,6 +155,45 @@ public class UsuariosAgregadosActivity extends AppCompatActivity {
             }
         });
         usuarioLista();
+    }
+    private void cambiarFecha(String fechaE){
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject jsonObject=new JSONObject(response);
+                    JSONArray jsonArray=jsonObject.getJSONArray("aprobacion");
+                    JSONObject confirmacion=jsonArray.getJSONObject(0);
+                    if(confirmacion.getString("mensaje").equals("aprobado")){
+                        Toast.makeText(getApplicationContext(),"Fecha actualizada",Toast.LENGTH_SHORT).show();
+                        fechalimite.setText("");
+                    }
+                    else{
+                        Toast.makeText(getApplicationContext(),"Error al actualizar la fecha",Toast.LENGTH_LONG).show();
+                    }
+                }
+                catch (Throwable error){
+                    Toast.makeText(getApplicationContext(),"Error 105:"+error.toString(),Toast.LENGTH_LONG).show();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(getApplicationContext(),"Error 106:"+error.toString(),Toast.LENGTH_LONG).show();
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("empresa", empresaN);
+                params.put("fechaI", fechaE);
+                params.put("cifrado", cifrado);
+                params.put("codigoLlave", "48");
+                return params;
+            }
+        };
+        RequestQueue requestQueue= Volley.newRequestQueue(getApplicationContext());
+        requestQueue.add(stringRequest);
     }
     private void dialogoCajero(String cuentaL,String nombre,String apellido){
         AlertDialog.Builder builder=new AlertDialog.Builder(this);

@@ -101,12 +101,46 @@
                 app:srcCompat="@android:drawable/ic_menu_search" />
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/linearLayout14"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginEnd="10dp"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/linearLayout9"
+            app:layout_constraintVertical_bias="0.0">
+
+            <EditText
+                android:id="@+id/fechalimite55"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ems="10"
+                android:hint="Establece fecha limite"
+                android:inputType="date"
+                android:textColor="#000000"
+                android:textColorHint="#414040" />
+
+            <ImageButton
+                android:id="@+id/enviarfecha55"
+                style="@android:style/Holo.Light.ButtonBar"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="#00BCD4"
+                app:srcCompat="@android:drawable/ic_menu_send" />
+        </LinearLayout>
+
         <TextView
             android:id="@+id/activos55"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
-            android:layout_marginTop="8dp"
             android:layout_marginEnd="20dp"
             android:gravity="right"
             android:text="Activos: L. 0.00"
@@ -117,7 +151,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.79"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/linearLayout9"
+            app:layout_constraintTop_toBottomOf="@+id/linearLayout14"
             app:layout_constraintVertical_bias="0.0" />
 
         <TextView
@@ -142,7 +176,7 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginStart="10dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="5dp"
             android:layout_marginEnd="10dp"
             android:paddingBottom="15dp"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -167,7 +201,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/ganancias55"
-            app:layout_constraintVertical_bias="0.3" />
+            app:layout_constraintVertical_bias="0.32999998" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

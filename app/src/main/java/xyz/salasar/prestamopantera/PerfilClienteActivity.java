@@ -60,7 +60,7 @@ public class PerfilClienteActivity extends AppCompatActivity {
     private TextView rangotxt;
     private String txtrango,txttelefono;
     private CheckBox estadocuenta,recordatorio;
-    private Button eliminar, whatsapp;
+    private Button eliminar, whatsapp,calcularinteres;
     private String fechaC,deudaD,interesesD,recordatorioestadocuenta;
     private SimpleDateFormat formatoEntrada=new SimpleDateFormat("dd/MM/yyyy");
     private SimpleDateFormat formatoSalida=new SimpleDateFormat("yyyy-MM-dd");
@@ -108,6 +108,13 @@ public class PerfilClienteActivity extends AppCompatActivity {
         confirmarFecha=findViewById(R.id.ejecutarFecha77);
         estadocuenta=findViewById(R.id.estadocuenta77);
         recordatorio=findViewById(R.id.recordatoriopago77);
+        calcularinteres=findViewById(R.id.calcularinteres77);
+        calcularinteres.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                calcularDeudaIntereses();
+            }
+        });
         whatsapp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -168,11 +175,11 @@ public class PerfilClienteActivity extends AppCompatActivity {
                 try{
                     Date fechaf=formatoEntrada.parse(fecha.getText().toString());
                     fechaC=formatoSalida.format(fechaf);
+                    cambiarFecha(fechaC);
                 }
                 catch (ParseException e){
                     Toast.makeText(getApplicationContext(),"Fecha no valida",Toast.LENGTH_LONG).show();
                 }
-                cambiarFecha(fechaC);
             }
         });
         eliminar.setOnClickListener(new View.OnClickListener() {
@@ -312,6 +319,57 @@ public class PerfilClienteActivity extends AppCompatActivity {
             }
         });
         informacion();
+    }
+    private void calcularDeudaIntereses(){
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject jsonObject=new JSONObject(response);
+                    JSONArray jsonArray=jsonObject.getJSONArray("aprobacion");
+                    JSONObject confirmacion=jsonArray.getJSONObject(0);
+                    if(confirmacion.getString("mensaje").equals("aprobado")){
+                        Toast.makeText(getApplicationContext(),"Intereses actualizado",Toast.LENGTH_SHORT).show();
+                        informacion();
+                    }
+                    else{
+                        if(confirmacion.getString("mensaje").equals("negado")) {
+                            Toast.makeText(getApplicationContext(), "Credito insuficiente", Toast.LENGTH_LONG).show();
+                        }
+                        else {
+                            if(confirmacion.getString("mensaje").equals("insuficiente")){
+                                Toast.makeText(getApplicationContext(), "El cliente tiene deuda", Toast.LENGTH_LONG).show();
+                            }
+                            else {
+                                Toast.makeText(getApplicationContext(), "Error al actualizar el interes", Toast.LENGTH_LONG).show();
+                            }
+                        }
+                    }
+                }
+                catch (Throwable error){
+                    Toast.makeText(getApplicationContext(),"Error 107:"+error.toString(),Toast.LENGTH_LONG).show();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(getApplicationContext(),"Error 108:"+error.toString(),Toast.LENGTH_LONG).show();
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("cuenta", cuentaC);
+                params.put("empresa",empresaP);
+                params.put("cuentaO",cuentaP);
+                params.put("cifrado", cifrado);
+                params.put("codigoLlave", "49");
+                return params;
+            }
+        };
+        RequestQueue requestQueue= Volley.newRequestQueue(getApplicationContext());
+        stringRequest.setRetryPolicy(new DefaultRetryPolicy(15000, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        requestQueue.add(stringRequest);
     }
     private void cambiarFecha(String fechaE){
         StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
