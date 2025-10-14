@@ -1,12 +1,16 @@
 package xyz.salasar.prestamopantera;
 
 import android.Manifest;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.telephony.SmsManager;
 import android.view.KeyEvent;
 import android.view.View;
@@ -42,23 +46,30 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 public class PerfilClienteActivity extends AppCompatActivity {
     private String usuarioP,cuentaP,empresaP,cuentaC,url,cifrado,rangoN;
     private TextView nombreC,cuenta;
-    private EditText credito,deuda,intereses,porcentaje,fecha;
+    private EditText credito,deuda,intereses,porcentaje,fecha,prestamotxt;
     private ImageButton volver;
     private Spinner rango;
-    private TextView bcancelar1,bcancelar2,bcancelar3,bcancelar4;
+    private TextView bcancelar1,bcancelar2,bcancelar3,bcancelar4,identidadtxt,correoelectronicotxt,enviarprestamotxt;
     private TextView confirmarCredito,confirmarPorcentaje,confirmarRango,confirmarDeuda,confirmarIntereses,confirmarFecha;
     private TextView rangotxt;
     private String txtrango,txttelefono;
+    private String cantidadC;
+    private String nombreI,apellidoI,cuentaI,descripcionI,cantidadI,fechaI,horaI,referenciaI;
     private CheckBox estadocuenta,recordatorio;
     private Button eliminar, whatsapp,calcularinteres;
     private String fechaC,deudaD,interesesD,recordatorioestadocuenta;
@@ -66,6 +77,18 @@ public class PerfilClienteActivity extends AppCompatActivity {
     private SimpleDateFormat formatoSalida=new SimpleDateFormat("yyyy-MM-dd");
     private SimpleDateFormat formatoEntrada2=new SimpleDateFormat("yyyy-MM-dd");
     private SimpleDateFormat formatoSalida2=new SimpleDateFormat("dd/MM/yyyy");
+    private BluetoothAdapter mBluetoothAdapter;
+    private static final int REQUEST_BLUETOOTH = 1;
+    private BluetoothDevice mmDevice;
+    public static String printer_id="MP58-01";
+    private BluetoothSocket mmSocket;
+    private OutputStream mmOutputStream;
+    private InputStream mmInputStream;
+    private byte[] readBuffer;
+    private int readBufferPosition;
+    private volatile boolean stopWorker;
+    private Thread workerThread;
+    private boolean isOpenBTRequested=true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -109,6 +132,22 @@ public class PerfilClienteActivity extends AppCompatActivity {
         estadocuenta=findViewById(R.id.estadocuenta77);
         recordatorio=findViewById(R.id.recordatoriopago77);
         calcularinteres=findViewById(R.id.calcularinteres77);
+        identidadtxt=findViewById(R.id.identidad77);
+        correoelectronicotxt=findViewById(R.id.correoelectronico77);
+        prestamotxt=findViewById(R.id.prestamo77);
+        enviarprestamotxt=findViewById(R.id.enviarprestamo77);
+        enviarprestamotxt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(!prestamotxt.getText().toString().equals("")) {
+                    cantidadC = prestamotxt.getText().toString();
+                    ventanaDialogo();
+                }
+                else{
+                    Toast.makeText(getApplicationContext(),"Ingresa alguna cantidad",Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
         calcularinteres.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -164,7 +203,11 @@ public class PerfilClienteActivity extends AppCompatActivity {
                         startActivity(intent);
                     }
                     else{
-                        Toast.makeText(getApplicationContext(),"Debes elegir un tipo de mensaje",Toast.LENGTH_LONG).show();
+                        Intent intent=new Intent();
+                        intent.setAction(Intent.ACTION_VIEW);
+                        String uri="whatsapp://send?phone="+txttelefono+"&text="+"";
+                        intent.setData(Uri.parse(uri));
+                        startActivity(intent);
                     }
                 }
             }
@@ -320,6 +363,455 @@ public class PerfilClienteActivity extends AppCompatActivity {
         });
         informacion();
     }
+    private void ventanaDialogo(){
+        AlertDialog.Builder builder=new AlertDialog.Builder(this);
+        builder.setTitle("Prestar Dinero");
+        DecimalFormat formato = new DecimalFormat("#,##0.00");
+        String formateado=formato.format(Double.parseDouble(cantidadC));
+        builder.setMessage("¿Le prestaras a "+nombreC.getText().toString()+" "+formateado+" lempiras?");
+        builder.setPositiveButton("Credito", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                credito();
+            }
+        });
+        builder.setNegativeButton("Efectivo", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                efectivo();
+            }
+        });
+        builder.setNeutralButton("Cancelar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        builder.setCancelable(true);
+        AlertDialog dialog=builder.create();
+        dialog.show();
+    }
+    private void efectivo(){
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject jsonObject=new JSONObject(response);
+                    JSONArray jsonArray=jsonObject.getJSONArray("aprobacion");
+                    JSONObject confirmacion=jsonArray.getJSONObject(0);
+                    if(confirmacion.getString("mensaje").equals("aprobado")){
+                        Toast.makeText(getApplicationContext(),"Credito enviado",Toast.LENGTH_SHORT).show();
+                        nombreI=confirmacion.getString("nombre");
+                        apellidoI=confirmacion.getString("apellido");
+                        cuentaI=confirmacion.getString("cuenta");
+                        descripcionI=confirmacion.getString("descripcion");
+                        cantidadI=confirmacion.getString("cantidad");
+                        fechaI=confirmacion.getString("fecha");
+                        horaI=confirmacion.getString("hora");
+                        referenciaI=confirmacion.getString("referencia");
+                        informacion();
+                        prestamotxt.setText("");
+                        imprimirDialogo();
+                    }
+                    else{
+                        if(confirmacion.getString("mensaje").equals("insuficiente")) {
+                            Toast.makeText(getApplicationContext(), "Saldo insuficiente", Toast.LENGTH_LONG).show();
+                        }
+                        else{
+                            Toast.makeText(getApplicationContext(), "Credito insuficiente", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                }
+                catch (Throwable error){
+                    Toast.makeText(getApplicationContext(),"Error 111:"+error.toString(),Toast.LENGTH_LONG).show();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(getApplicationContext(),"Error 112:"+error.toString(),Toast.LENGTH_LONG).show();
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("empresa", empresaP);
+                params.put("usuario", cuentaC);
+                params.put("cantidad", cantidadC);
+                params.put("usuarioP", usuarioP);
+                params.put("cifrado", cifrado);
+                params.put("codigoLlave", "52");
+                return params;
+            }
+        };
+        RequestQueue requestQueue= Volley.newRequestQueue(getApplicationContext());
+        stringRequest.setRetryPolicy(new DefaultRetryPolicy(10000, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        requestQueue.add(stringRequest);
+    }
+    private void credito(){
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject jsonObject=new JSONObject(response);
+                    JSONArray jsonArray=jsonObject.getJSONArray("aprobacion");
+                    JSONObject confirmacion=jsonArray.getJSONObject(0);
+                    if(confirmacion.getString("mensaje").equals("aprobado")){
+                        Toast.makeText(getApplicationContext(),"Credito enviado",Toast.LENGTH_SHORT).show();
+                        nombreI=confirmacion.getString("nombre");
+                        apellidoI=confirmacion.getString("apellido");
+                        cuentaI=confirmacion.getString("cuenta");
+                        descripcionI=confirmacion.getString("descripcion");
+                        cantidadI=confirmacion.getString("cantidad");
+                        fechaI=confirmacion.getString("fecha");
+                        horaI=confirmacion.getString("hora");
+                        referenciaI=confirmacion.getString("referencia");
+                        informacion();
+                        prestamotxt.setText("");
+                        imprimirDialogo();
+                    }
+                    else{
+                        if(confirmacion.getString("mensaje").equals("insuficiente")) {
+                            Toast.makeText(getApplicationContext(), "Saldo insuficiente", Toast.LENGTH_LONG).show();
+                        }
+                        else{
+                            Toast.makeText(getApplicationContext(), "Credito insuficiente", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                }
+                catch (Throwable error){
+                    Toast.makeText(getApplicationContext(),"Error 113:"+error.toString(),Toast.LENGTH_LONG).show();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(getApplicationContext(),"Error 114:"+error.toString(),Toast.LENGTH_LONG).show();
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("empresa", empresaP);
+                params.put("usuario", cuentaC);
+                params.put("cantidad", cantidadC);
+                params.put("usuarioP", usuarioP);
+                params.put("cifrado", cifrado);
+                params.put("codigoLlave", "51");
+                return params;
+            }
+        };
+        RequestQueue requestQueue= Volley.newRequestQueue(getApplicationContext());
+        stringRequest.setRetryPolicy(new DefaultRetryPolicy(10000, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        requestQueue.add(stringRequest);
+
+    }
+    private void imprimirDialogo(){
+        AlertDialog.Builder builder=new AlertDialog.Builder(this);
+        builder.setTitle("Imprimir recibo");
+        builder.setMessage("Imprime el recibo para "+nombreI+" "+apellidoI);
+        builder.setPositiveButton("Imprimir", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                imprimir();
+                dialog.dismiss();
+            }
+        });
+        builder.setNegativeButton("Copia", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                copia();
+                dialog.dismiss();
+            }
+        });
+        builder.setNeutralButton("Cerrar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        builder.setCancelable(false);
+        AlertDialog dialog=builder.create();
+        dialog.show();
+    }
+    //Inicio de imprimir
+    public void imprimir(){
+        try {
+            findBT();
+            openBT();
+            printText();
+            closeBT();
+        }
+        catch (IOException ex){
+            ex.printStackTrace();
+            imprimirDialogo();
+        }
+    }
+    public void copia(){
+        try {
+            findBT();
+            openBT();
+            printText2();
+            closeBT();
+        }
+        catch (IOException ex){
+            ex.printStackTrace();
+            imprimirDialogo();
+        }
+    }
+    private void printText2(){
+        try{
+            if (mmOutputStream == null) {
+                Toast.makeText(getApplicationContext(), "Error: impresora no disponible", Toast.LENGTH_LONG).show();
+                imprimirDialogo();
+            }
+            else{
+                DecimalFormat formato = new DecimalFormat("#,##0.00");
+                String formateado=formato.format(Double.parseDouble(cantidadI));
+                byte[] leftAlignCommand = new byte[]{0x1B, 0x61, 0x00};
+                mmOutputStream.write(leftAlignCommand);
+                String recibo1="\n";
+                recibo1+="================================\n";
+                mmOutputStream.write(recibo1.getBytes());
+                byte[] centerCommand = new byte[]{0x1B, 0x61, 0x01};
+                mmOutputStream.write(centerCommand);
+                String recibo2=empresaP+"\n";
+                mmOutputStream.write(recibo2.getBytes());
+                mmOutputStream.write(leftAlignCommand);
+                String recibo="================================\n";
+                recibo+="Descripcion: \n";
+                recibo+=descripcionI+"\n";
+                recibo+="================================\n";
+                recibo+="Referencia: "+referenciaI+"\n";
+                recibo+="Fecha: "+fechaI+"\n";
+                recibo+="Hora: "+horaI+"\n";
+                recibo+="Cajero: "+usuarioP+"\n";
+                recibo+="================================\n";
+                recibo+="No. Cuenta: "+cuentaI+"\n";
+                recibo+="Cliente:\n";
+                recibo+=nombreI+"\n";
+                recibo+=apellidoI+"\n";
+                recibo+="================================\n";
+                recibo+="Cantidad: L. "+formateado+"\n";
+                recibo+="================================\n";
+                recibo+="\n";
+                recibo+="\n";
+                recibo+="       Copia del cliente\n";
+                recibo+="\n";
+                recibo+="\n";
+                mmOutputStream.write(recibo.getBytes());
+                mmOutputStream.flush();
+                imprimirDialogo();
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+    public void printText(){
+        try{
+            if (mmOutputStream == null) {
+                Toast.makeText(getApplicationContext(), "Error: impresora no disponible", Toast.LENGTH_LONG).show();
+                imprimirDialogo();
+            }
+            else{
+                DecimalFormat formato = new DecimalFormat("#,##0.00");
+                String formateado=formato.format(Double.parseDouble(cantidadI));
+                byte[] leftAlignCommand = new byte[]{0x1B, 0x61, 0x00};
+                mmOutputStream.write(leftAlignCommand);
+                String recibo1="\n";
+                recibo1+="================================\n";
+                mmOutputStream.write(recibo1.getBytes());
+                byte[] centerCommand = new byte[]{0x1B, 0x61, 0x01};
+                mmOutputStream.write(centerCommand);
+                String recibo2=empresaP+"\n";
+                mmOutputStream.write(recibo2.getBytes());
+                mmOutputStream.write(leftAlignCommand);
+                String recibo="================================\n";
+                recibo+="Descripcion: \n";
+                recibo+=descripcionI+"\n";
+                recibo+="================================\n";
+                recibo+="Referencia: "+referenciaI+"\n";
+                recibo+="Fecha: "+fechaI+"\n";
+                recibo+="Hora: "+horaI+"\n";
+                recibo+="Cajero: "+usuarioP+"\n";
+                recibo+="================================\n";
+                recibo+="No. Cuenta: "+cuentaI+"\n";
+                recibo+="Cliente:\n";
+                recibo+=nombreI+"\n";
+                recibo+=apellidoI+"\n";
+                recibo+="================================\n";
+                recibo+="Cantidad: L. "+formateado+"\n";
+                recibo+="================================\n";
+                recibo+="\n";
+                recibo+="\n";
+                recibo+="\n";
+                recibo+="\n";
+                recibo+="   --------------------------   \n";
+                recibo+="             Firma\n";
+                recibo+="       No valido sin firma\n";
+                recibo+="\n";
+                recibo+="\n";
+                recibo+="\n";
+                mmOutputStream.write(recibo.getBytes());
+                mmOutputStream.flush();
+                imprimirDialogo();
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+    public void findBT() {
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (mBluetoothAdapter == null) {
+            Toast.makeText(this, "Device Bluetooth tidak Tersedia", Toast.LENGTH_SHORT).show();
+        }
+        if (ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            isOpenBTRequested = false;
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.BLUETOOTH_CONNECT,
+                            android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_BLUETOOTH);
+            return;
+        }
+        if (!mBluetoothAdapter.isEnabled()) {
+            Intent enableBluetooth = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBluetooth, 0);
+        }
+        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
+        if (pairedDevices.size() > 0) {
+            mmDevice = pairedDevices.iterator().next();
+            /*for (BluetoothDevice device : pairedDevices) {
+                if (device.getName().equals(printer_id)) {
+                    mmDevice = device;
+                    break;
+                }
+            }*/
+        }
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_BLUETOOTH) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                try {
+                    if (isOpenBTRequested) {
+                        openBT();  // Reintenta abrir la conexión Bluetooth
+                    } else {
+                        findBT();  // Reintenta buscar dispositivos
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                Toast.makeText(this, "Permiso Bluetooth denegado", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+    public void openBT() throws IOException {
+        try {
+            // UUID estándar para conexiones seriales Bluetooth
+            UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
+
+            // Verifica si los permisos necesarios están otorgados
+            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_CONNECT)
+                    != PackageManager.PERMISSION_GRANTED) {
+                isOpenBTRequested = true;
+                // Solicita los permisos si no están concedidos
+                ActivityCompat.requestPermissions(
+                        this,
+                        new String[]{android.Manifest.permission.BLUETOOTH_CONNECT,
+                                Manifest.permission.ACCESS_FINE_LOCATION},
+                        REQUEST_BLUETOOTH
+                );
+                return;  // Detén la ejecución hasta que se concedan los permisos
+            }
+
+            // Establece la conexión Bluetooth
+            mmSocket = mmDevice.createRfcommSocketToServiceRecord(uuid);
+            mmSocket.connect();
+
+            // Inicializa los flujos de entrada y salida
+            mmOutputStream = mmSocket.getOutputStream();
+            mmInputStream = mmSocket.getInputStream();
+
+            // Inicia la escucha de datos recibidos
+            beginListenForData();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public void beginListenForData() {
+        try {
+            final Handler handler = new Handler();
+            // this is the ASCII code for a newline character
+            final byte delimiter = 10;
+            stopWorker = false;
+            readBufferPosition = 0;
+            readBuffer = new byte[1024];
+            workerThread = new Thread(new Runnable() {
+                public void run() {
+                    while (!Thread.currentThread().isInterrupted() && !stopWorker) {
+                        try {
+                            int bytesAvailable = mmInputStream.available();
+                            if (bytesAvailable > 0) {
+                                byte[] packetBytes = new byte[bytesAvailable];
+                                mmInputStream.read(packetBytes);
+                                for (int i = 0; i < bytesAvailable; i++) {
+                                    byte b = packetBytes[i];
+                                    if (b == delimiter) {
+                                        byte[] encodedBytes = new byte[readBufferPosition];
+                                        System.arraycopy(
+                                                readBuffer, 0,
+                                                encodedBytes, 0,
+                                                encodedBytes.length
+                                        );
+                                        // specify US-ASCII encoding
+                                        final String data = new String(encodedBytes, "US-ASCII");
+                                        readBufferPosition = 0;
+                                        // tell the user data were sent to bluetooth printer device
+                                        handler.post(new Runnable() {
+                                            public void run() {
+                                                //myLabel.setText(data);
+                                            }
+                                        });
+                                    } else {
+                                        readBuffer[readBufferPosition++] = b;
+                                    }
+                                }
+                            }
+                        } catch (IOException ex) {
+                            stopWorker = true;
+                        }
+                    }
+                }
+            });
+            workerThread.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public void closeBT() throws IOException {
+        try {
+            stopWorker = true;
+            mmOutputStream.close();
+            mmInputStream.close();
+            mmSocket.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    //fin de imprimir
     private void calcularDeudaIntereses(){
         StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
             @Override
@@ -770,6 +1262,8 @@ public class PerfilClienteActivity extends AppCompatActivity {
                         nombreC.setText(confirmacion.getString("nombre") + " " + confirmacion.getString("apellido"));
                         cuenta.setText("No. cuenta: " + cuentaC);
                         txttelefono=confirmacion.getString("telefono");
+                        correoelectronicotxt.setText("Correo: " + confirmacion.getString("correo"));
+                        identidadtxt.setText("Identidad: " + confirmacion.getString("identidad"));
                         DecimalFormat formato = new DecimalFormat("#,##0.00");
                         String formateado = formato.format(Double.parseDouble(confirmacion.getString("credito")));
                         credito.setHint(formateado);

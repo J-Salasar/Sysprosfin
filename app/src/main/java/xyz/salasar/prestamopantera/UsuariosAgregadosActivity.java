@@ -24,6 +24,7 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -48,7 +49,7 @@ import xyz.salasar.prestamopantera.configuracion.UsuarioAgregadoAdaptador;
 
 public class UsuariosAgregadosActivity extends AppCompatActivity {
     private String usuario, cuentaN, empresaN,url,cifrado,rangoN;
-    private ImageButton volver,recargar,buscar,enviarfecha;
+    private ImageButton volver,recargar,buscar,enviarfecha,agregarcliente;
     private ListView listaUsuario;
     private EditText nombretxt,fechalimite;
     private ArrayList<UsuarioAgregadoAdaptador> clientes;
@@ -88,6 +89,13 @@ public class UsuariosAgregadosActivity extends AppCompatActivity {
         panelusuarioAgregado.removeView(notificacionNada);
         fechalimite=findViewById(R.id.fechalimite55);
         enviarfecha=findViewById(R.id.enviarfecha55);
+        agregarcliente=findViewById(R.id.agregarcliente55);
+        agregarcliente.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                escribirdialogo();
+            }
+        });
         enviarfecha.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -108,7 +116,13 @@ public class UsuariosAgregadosActivity extends AppCompatActivity {
                     listaUsuarios();
                 }
                 else{
-                    Toast.makeText(getApplicationContext(),"Nombre invalido",Toast.LENGTH_LONG).show();
+                    if(nombretxt.getText().toString().trim().equals("")){
+                        usuarioLista();
+                        Toast.makeText(getApplicationContext(),"Lista actualizada",Toast.LENGTH_LONG).show();
+                    }
+                    else{
+                        Toast.makeText(getApplicationContext(),"Nombre invalido",Toast.LENGTH_LONG).show();
+                    }
                 }
             }
         });
@@ -193,6 +207,129 @@ public class UsuariosAgregadosActivity extends AppCompatActivity {
             }
         };
         RequestQueue requestQueue= Volley.newRequestQueue(getApplicationContext());
+        requestQueue.add(stringRequest);
+    }
+    private void escribirdialogo(){
+        final EditText nombreUsuario=new EditText(this);
+        new AlertDialog.Builder(this).setTitle("Agregar").setMessage("Agrega al cliente por medio de su usuario").setView(nombreUsuario).setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String opcion1 = "[a-z0-9]{4,16}";
+                String usuarioAgregar=nombreUsuario.getText().toString().trim();
+                dialog.cancel();
+                if(usuarioAgregar.matches(opcion1)){
+                    buscarCliente(usuarioAgregar);
+                }
+                else{
+                    Toast.makeText(getApplicationContext(),"Usuario invalido",Toast.LENGTH_LONG).show();
+                }
+            }
+        }).setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        }).show();
+    }
+    private void buscarCliente(String usuarioAgregar){
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject jsonObject=new JSONObject(response);
+                    JSONArray jsonArray=jsonObject.getJSONArray("aprobacion");
+                    JSONObject confirmacion=jsonArray.getJSONObject(0);
+                    if(confirmacion.getString("mensaje").equals("aprobado")){
+                        dialogoMostrar(confirmacion.getString("nombre"),confirmacion.getString("apellido"),confirmacion.getString("identidad"),confirmacion.getString("telefono"),usuarioAgregar);
+                    }
+                    else{
+                        Toast.makeText(getApplicationContext(),"No existe",Toast.LENGTH_LONG).show();
+                    }
+                }
+                catch (Throwable error){
+                    Toast.makeText(getApplicationContext(),"Error 115:"+error.toString(),Toast.LENGTH_LONG).show();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(getApplicationContext(),"Error 116:"+error.toString(),Toast.LENGTH_LONG).show();
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("usuarioP", usuarioAgregar);
+                params.put("empresa", empresaN);
+                params.put("cifrado", cifrado);
+                params.put("codigoLlave", "53");
+                return params;
+            }
+        };
+        RequestQueue requestQueue= Volley.newRequestQueue(getApplicationContext());
+        stringRequest.setRetryPolicy(new DefaultRetryPolicy(10000, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        requestQueue.add(stringRequest);
+    }
+    private void dialogoMostrar(String nombre,String apellido,String identidad,String telefono,String usuarioAgregar){
+        AlertDialog.Builder builder=new AlertDialog.Builder(this);
+        builder.setTitle("Encontrado");
+        builder.setMessage("Se encontro a "+nombre+" "+apellido+" con numero de identidad: "+identidad+" y telefono: "+telefono);
+        builder.setPositiveButton("Agregar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                agregarCliente(usuarioAgregar);
+            }
+        });
+        builder.setNeutralButton("Cancelar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        builder.setCancelable(true);
+        AlertDialog dialog=builder.create();
+        dialog.show();
+    }
+
+    private void agregarCliente(String usuarioAgregar){
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject jsonObject=new JSONObject(response);
+                    JSONArray jsonArray=jsonObject.getJSONArray("aprobacion");
+                    JSONObject confirmacion=jsonArray.getJSONObject(0);
+                    if(confirmacion.getString("mensaje").equals("aprobado")){
+                        Toast.makeText(getApplicationContext(),"Usuario agregado",Toast.LENGTH_SHORT).show();
+                        usuarioLista();
+                    }
+                    else{
+                        Toast.makeText(getApplicationContext(),"Ya esta agregado",Toast.LENGTH_LONG).show();
+                    }
+                }
+                catch (Throwable error){
+                    Toast.makeText(getApplicationContext(),"Error 109:"+error.toString(),Toast.LENGTH_LONG).show();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(getApplicationContext(),"Error 110:"+error.toString(),Toast.LENGTH_LONG).show();
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("usuarioP", usuarioAgregar);
+                params.put("empresa", empresaN);
+                params.put("cifrado", cifrado);
+                params.put("codigoLlave", "50");
+                return params;
+            }
+        };
+        RequestQueue requestQueue= Volley.newRequestQueue(getApplicationContext());
+        stringRequest.setRetryPolicy(new DefaultRetryPolicy(10000, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         requestQueue.add(stringRequest);
     }
     private void dialogoCajero(String cuentaL,String nombre,String apellido){
