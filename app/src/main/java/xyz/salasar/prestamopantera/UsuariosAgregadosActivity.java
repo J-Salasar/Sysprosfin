@@ -211,17 +211,17 @@ public class UsuariosAgregadosActivity extends AppCompatActivity {
     }
     private void escribirdialogo(){
         final EditText nombreUsuario=new EditText(this);
-        new AlertDialog.Builder(this).setTitle("Agregar").setMessage("Agrega al cliente por medio de su usuario").setView(nombreUsuario).setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
+        new AlertDialog.Builder(this).setTitle("Agregar").setMessage("Agrega al cliente por medio de su identidad").setView(nombreUsuario).setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                String opcion1 = "[a-z0-9]{4,16}";
+                String opcion1 = "[0-9]{4,13}";
                 String usuarioAgregar=nombreUsuario.getText().toString().trim();
                 dialog.cancel();
-                if(usuarioAgregar.matches(opcion1)){
+                if(usuarioAgregar.matches(opcion1)&&!usuarioAgregar.equals("0000000000000")){
                     buscarCliente(usuarioAgregar);
                 }
                 else{
-                    Toast.makeText(getApplicationContext(),"Usuario invalido",Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(),"identidad invalida",Toast.LENGTH_LONG).show();
                 }
             }
         }).setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
@@ -240,7 +240,7 @@ public class UsuariosAgregadosActivity extends AppCompatActivity {
                     JSONArray jsonArray=jsonObject.getJSONArray("aprobacion");
                     JSONObject confirmacion=jsonArray.getJSONObject(0);
                     if(confirmacion.getString("mensaje").equals("aprobado")){
-                        dialogoMostrar(confirmacion.getString("nombre"),confirmacion.getString("apellido"),confirmacion.getString("identidad"),confirmacion.getString("telefono"),usuarioAgregar);
+                        dialogoMostrar(confirmacion.getString("nombre"),confirmacion.getString("apellido"),confirmacion.getString("identidad"),confirmacion.getString("telefono"),confirmacion.getString("usuario"));
                     }
                     else{
                         Toast.makeText(getApplicationContext(),"No existe",Toast.LENGTH_LONG).show();

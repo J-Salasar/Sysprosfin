@@ -1,7 +1,7 @@
 package xyz.salasar.prestamopantera.configuracion;
 
 public class AgregarUsuarioAdaptador {
-    private String nombre,apellido,telefono,correo,usuario,id;
+    private String nombre,apellido,telefono,correo,usuario,id,identidad;
 
     public String getNombre() {
         return nombre;
@@ -51,12 +51,21 @@ public class AgregarUsuarioAdaptador {
         this.id = id;
     }
 
-    public AgregarUsuarioAdaptador(String nombre, String apellido, String telefono, String correo, String usuario, String id){
+    public String getIdentidad() {
+        return identidad;
+    }
+
+    public void setIdentidad(String identidad) {
+        this.identidad = identidad;
+    }
+
+    public AgregarUsuarioAdaptador(String nombre, String apellido, String telefono, String correo, String usuario, String identidad, String id){
         this.nombre=nombre;
         this.apellido=apellido;
         this.telefono=telefono;
         this.correo=correo;
         this.usuario=usuario;
+        this.identidad=identidad;
         this.id=id;
     }
 }

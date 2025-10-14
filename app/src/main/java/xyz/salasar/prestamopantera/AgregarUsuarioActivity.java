@@ -41,7 +41,7 @@ import xyz.salasar.prestamopantera.configuracion.AgregarUsuarioAdaptador;
 
 public class AgregarUsuarioActivity extends AppCompatActivity {
     private String usuario,cuenta,empresa,url,cifrado,rangoN;
-    private ArrayList<String> nombre,apellido,telefono,correo,usuarioN,id;
+    private ArrayList<String> nombre,apellido,telefono,correo,usuarioN,id,identidad;
     private ArrayList<AgregarUsuarioAdaptador> datosSolicitud;
     private ListView listaSolicitud;
     private ImageButton volver,recargar;
@@ -191,6 +191,10 @@ public class AgregarUsuarioActivity extends AppCompatActivity {
                         Toast.makeText(getApplicationContext(),"Usuario agregado",Toast.LENGTH_SHORT).show();
                         listaSolicitud();
                     }
+                    else{
+                        Toast.makeText(getApplicationContext(),"Usuario ya agregado ",Toast.LENGTH_SHORT).show();
+                        rechazarUsuario();
+                    }
                 }
                 catch (Throwable error){
                     Toast.makeText(getApplicationContext(),"Error 005:"+error.toString(),Toast.LENGTH_LONG).show();
@@ -237,6 +241,7 @@ public class AgregarUsuarioActivity extends AppCompatActivity {
                                     rowcuenta.getString("telefono"),
                                     rowcuenta.getString("correo"),
                                     rowcuenta.getString("usuario"),
+                                    rowcuenta.getString("identidad"),
                                     rowcuenta.getString("id")
                             );
                             datosSolicitud.add(empresaInformacion);
@@ -287,6 +292,7 @@ public class AgregarUsuarioActivity extends AppCompatActivity {
         telefono=new ArrayList<String>();
         correo=new ArrayList<String>();
         usuarioN=new ArrayList<String>();
+        identidad=new ArrayList<String>();
         id=new ArrayList<String>();
         for(int i=0;i<datosSolicitud.size();i++){
             nombre.add(datosSolicitud.get(i).getNombre());
@@ -294,9 +300,10 @@ public class AgregarUsuarioActivity extends AppCompatActivity {
             telefono.add(datosSolicitud.get(i).getTelefono());
             correo.add(datosSolicitud.get(i).getCorreo());
             usuarioN.add(datosSolicitud.get(i).getUsuario());
+            identidad.add(datosSolicitud.get(i).getIdentidad());
             id.add(datosSolicitud.get(i).getId());
         }
-        listaSolicitud.setAdapter(new AdaptadorSolicitud(getApplicationContext(),nombre,apellido,telefono,correo,usuarioN,id));
+        listaSolicitud.setAdapter(new AdaptadorSolicitud(getApplicationContext(),nombre,apellido,telefono,correo,usuarioN,identidad,id));
     }
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if(keyCode == KeyEvent.KEYCODE_BACK){

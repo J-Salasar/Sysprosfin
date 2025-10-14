@@ -105,7 +105,7 @@ public class RegistroActivity extends AppCompatActivity {
     public void validar(){
         if(validarCampos(editxt_nombre_registro.getText().toString().trim(),1)){
             if(validarCampos(editxt_apellido_registro.getText().toString().trim(),1)){
-                if(validarCampos(editxt_dni_registro.getText().toString().trim(),2)){
+                if(validarCampos(editxt_dni_registro.getText().toString().trim(),2)&&!editxt_dni_registro.getText().toString().trim().equals("0000000000000")){
                     if(validarCampos(editxt_telefono_registro.getText().toString().trim(),3)){
                         if(validarCampos(editxt_correo_registro.getText().toString().trim(),4)){
                             if(validarCampos(editxt_usuario_registro.getText().toString().trim(),5)) {
@@ -229,8 +229,14 @@ public class RegistroActivity extends AppCompatActivity {
                                 activarFunciones();
                             }
                             else{
-                                Toast.makeText(getApplicationContext(),"Error al registrar",Toast.LENGTH_LONG).show();
-                                activarFunciones();
+                                if(confirmacion.getString("mensaje").equals("identidad_repetida")){
+                                    Toast.makeText(getApplicationContext(),"DNI existente",Toast.LENGTH_LONG).show();
+                                    activarFunciones();
+                                }
+                                else {
+                                    Toast.makeText(getApplicationContext(), "Error al registrar", Toast.LENGTH_LONG).show();
+                                    activarFunciones();
+                                }
                             }
                         }
                     }

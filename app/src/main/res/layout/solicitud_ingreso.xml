@@ -25,6 +25,23 @@
         app:layout_constraintVertical_bias="0.0" />
 
     <TextView
+        android:id="@+id/identidad665"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="5dp"
+        android:text="Identidad: 0000000000000"
+        android:textColor="#000000"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/textView27"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/nombre665"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <TextView
         android:id="@+id/correo665"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -38,7 +55,7 @@
         app:layout_constraintEnd_toStartOf="@+id/textView27"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/nombre665"
+        app:layout_constraintTop_toBottomOf="@+id/identidad665"
         app:layout_constraintVertical_bias="0.0" />
 
     <TextView
