@@ -49,9 +49,9 @@ import xyz.salasar.prestamopantera.configuracion.UsuarioAgregadoAdaptador;
 
 public class UsuariosAgregadosActivity extends AppCompatActivity {
     private String usuario, cuentaN, empresaN,url,cifrado,rangoN;
-    private ImageButton volver,recargar,buscar,enviarfecha,agregarcliente;
+    private ImageButton volver,recargar,buscar,enviarfecha,agregarcliente,btfiltrodeuda;
     private ListView listaUsuario;
-    private EditText nombretxt,fechalimite;
+    private EditText nombretxt,fechalimite,filtrodeuda;
     private ArrayList<UsuarioAgregadoAdaptador> clientes;
     private ArrayList<String> nombreC,apellidoC,cuentaC,rangoC,creditoC,capitalC,interesesC,usuarioC;
     private ConstraintLayout panelusuarioAgregado;
@@ -90,6 +90,19 @@ public class UsuariosAgregadosActivity extends AppCompatActivity {
         fechalimite=findViewById(R.id.fechalimite55);
         enviarfecha=findViewById(R.id.enviarfecha55);
         agregarcliente=findViewById(R.id.agregarcliente55);
+        filtrodeuda=findViewById(R.id.filtardeuda55);
+        btfiltrodeuda=findViewById(R.id.enviarfiltrarD55);
+        btfiltrodeuda.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(Double.parseDouble(filtrodeuda.getText().toString().trim())>0){
+                    filtrarDeuda();
+                }
+                else{
+                    Toast.makeText(getApplicationContext(),"Ingrese un valor significativo",Toast.LENGTH_LONG).show();
+                }
+            }
+        });
         agregarcliente.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -169,6 +182,155 @@ public class UsuariosAgregadosActivity extends AppCompatActivity {
             }
         });
         usuarioLista();
+    }
+    private void filtrarDeuda(){
+        double[] total={0.0,0.0};
+        if(rangoN.equals("propietario")) {
+            String[] a = {"1"};
+            StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+                @Override
+                public void onResponse(String response) {
+                    try {
+                        JSONObject jsonObject = new JSONObject(response);
+                        JSONArray cuentasarray = jsonObject.getJSONArray("aprobacion");
+                        UsuarioAgregadoAdaptador clientesLista = null;
+                        clientes = new ArrayList<UsuarioAgregadoAdaptador>();
+                        for (int i = 0; i < cuentasarray.length(); i++) {
+                            JSONObject rowcuenta = cuentasarray.getJSONObject(i);
+                            if (rowcuenta.getString("mensaje").equals("aprobado")) {
+                                clientesLista = new UsuarioAgregadoAdaptador(
+                                        rowcuenta.getString("nombre"),
+                                        rowcuenta.getString("apellido"),
+                                        rowcuenta.getString("cuenta"),
+                                        rowcuenta.getString("rango"),
+                                        rowcuenta.getString("credito"),
+                                        rowcuenta.getString("capital"),
+                                        rowcuenta.getString("intereses"),
+                                        rowcuenta.getString("usuario")
+                                );
+                                total[0]+=Double.parseDouble(rowcuenta.getString("capital"));
+                                total[1]+=Double.parseDouble(rowcuenta.getString("intereses"));
+                                clientes.add(clientesLista);
+                            } else {
+                                a[0] = "0";
+                                if (b[0].equals("0")) {
+                                    panelusuarioAgregado.addView(notificacionNada);
+                                    panelusuarioAgregado.removeView(listaUsuario);
+                                    b[0] = "1";
+                                }
+                                break;
+                            }
+                        }
+                        if (a[0].equals("1")) {
+                            String formato=new DecimalFormat("#,##0.00").format(total[0]);
+                            activos.setText("Activos: L. "+formato);
+                            formato=new DecimalFormat("#,##0.00").format(total[1]);
+                            ganancias.setText("Ganancias: L. "+formato);
+                            llenarLista();
+                            if (b[0].equals("1")) {
+                                panelusuarioAgregado.removeView(notificacionNada);
+                                panelusuarioAgregado.addView(listaUsuario);
+                                b[0] = "0";
+                            }
+                        }
+                    } catch (Throwable error) {
+                        Toast.makeText(getApplicationContext(), "Error 09300:" + error.toString(), Toast.LENGTH_LONG).show();
+                    }
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Toast.makeText(getApplicationContext(), "Error 09400:" + error.toString(), Toast.LENGTH_LONG).show();
+                }
+
+            }) {
+                protected Map<String, String> getParams() throws AuthFailureError {
+                    Map<String, String> parametros = new HashMap<String, String>();
+                    parametros.put("usuario", usuario);
+                    parametros.put("empresa", empresaN);
+                    parametros.put("cantidad", filtrodeuda.getText().toString().trim());
+                    parametros.put("cifrado", cifrado);
+                    parametros.put("codigoLlave", "54");
+                    return parametros;
+                }
+            };
+            RequestQueue requestQueue = Volley.newRequestQueue(this);
+            requestQueue.add(stringRequest);
+        }
+        else{
+            if(rangoN.equals("director")) {
+                String[] a = {"1"};
+                StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        try {
+                            JSONObject jsonObject = new JSONObject(response);
+                            JSONArray cuentasarray = jsonObject.getJSONArray("aprobacion");
+                            UsuarioAgregadoAdaptador clientesLista = null;
+                            clientes = new ArrayList<UsuarioAgregadoAdaptador>();
+                            for (int i = 0; i < cuentasarray.length(); i++) {
+                                JSONObject rowcuenta = cuentasarray.getJSONObject(i);
+                                if (rowcuenta.getString("mensaje").equals("aprobado")) {
+                                    clientesLista = new UsuarioAgregadoAdaptador(
+                                            rowcuenta.getString("nombre"),
+                                            rowcuenta.getString("apellido"),
+                                            rowcuenta.getString("cuenta"),
+                                            rowcuenta.getString("rango"),
+                                            rowcuenta.getString("credito"),
+                                            rowcuenta.getString("capital"),
+                                            rowcuenta.getString("intereses"),
+                                            rowcuenta.getString("usuario")
+                                    );
+                                    clientes.add(clientesLista);
+                                    total[0]+=Double.parseDouble(rowcuenta.getString("capital"));
+                                    total[1]+=Double.parseDouble(rowcuenta.getString("intereses"));
+                                } else {
+                                    a[0] = "0";
+                                    if (b[0].equals("0")) {
+                                        panelusuarioAgregado.addView(notificacionNada);
+                                        panelusuarioAgregado.removeView(listaUsuario);
+                                        b[0] = "1";
+                                    }
+                                    break;
+                                }
+                            }
+                            if (a[0].equals("1")) {
+                                String formato=new DecimalFormat("#,##0.00").format(total[0]);
+                                activos.setText("Activos: L. "+formato);
+                                formato=new DecimalFormat("#,##0.00").format(total[1]);
+                                ganancias.setText("Ganancias: L. "+formato);
+                                llenarLista();
+                                if (b[0].equals("1")) {
+                                    panelusuarioAgregado.removeView(notificacionNada);
+                                    panelusuarioAgregado.addView(listaUsuario);
+                                    b[0] = "0";
+                                }
+                            }
+                        } catch (Throwable error) {
+                            Toast.makeText(getApplicationContext(), "Error 10300:" + error.toString(), Toast.LENGTH_LONG).show();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(getApplicationContext(), "Error 10400:" + error.toString(), Toast.LENGTH_LONG).show();
+                    }
+
+                }) {
+                    protected Map<String, String> getParams() throws AuthFailureError {
+                        Map<String, String> parametros = new HashMap<String, String>();
+                        parametros.put("usuario", usuario);
+                        parametros.put("empresa", empresaN);
+                        parametros.put("cantidad", filtrodeuda.getText().toString().trim());
+                        parametros.put("cifrado", cifrado);
+                        parametros.put("codigoLlave", "55");
+                        return parametros;
+                    }
+                };
+                RequestQueue requestQueue = Volley.newRequestQueue(this);
+                requestQueue.add(stringRequest);
+            }
+        }
     }
     private void cambiarFecha(String fechaE){
         StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {

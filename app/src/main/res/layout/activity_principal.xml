@@ -128,23 +128,24 @@
                     android:orientation="horizontal">
 
                     <Button
-                        android:id="@+id/imageButton_crear_principal"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:backgroundTint="#009688"
-                        android:text="crear cuenta"
-                        android:textColor="#FFFFFF"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <Button
                         android:id="@+id/imageButton_recargar_principal"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:backgroundTint="#BD1F12"
                         android:text="refrescar"
+                        android:textColor="#FFFFFF"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+
+                    <Button
+                        android:id="@+id/imageButton_crear_principal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:backgroundTint="#009688"
+                        android:text="crear empresa"
                         android:textColor="#FFFFFF"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -155,10 +156,11 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:backgroundTint="#FF9800"
-                        android:text="lista de empresas / grupos"
+                        android:text="lista de empresas"
                         android:textColor="#FFFFFF"
                         android:textSize="16sp"
                         android:textStyle="bold" />
+
                 </LinearLayout>
             </LinearLayout>
         </HorizontalScrollView>

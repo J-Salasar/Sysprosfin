@@ -68,6 +68,7 @@ public class PagarPrestamoActivity extends AppCompatActivity {
     private volatile boolean stopWorker;
     private Thread workerThread;
     private boolean isOpenBTRequested=true;
+    private String phpNombreD,phpApellidoD,phpDeuda,phpIntereses,phpCantidad,phpNombreO,phpApellidoO,phpFecha,phpHora;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -144,6 +145,233 @@ public class PagarPrestamoActivity extends AppCompatActivity {
                     JSONObject jsonObject=new JSONObject(response);
                     JSONArray jsonArray=jsonObject.getJSONArray("aprobacion");
                     JSONObject confirmacion=jsonArray.getJSONObject(0);
+                    if(confirmacion.getString("mensaje").equals("aprobado1")){
+                        phpNombreD=confirmacion.getString("nombreD");
+                        phpApellidoD=confirmacion.getString("apellidoD");
+                        phpDeuda=confirmacion.getString("deuda");
+                        phpIntereses=confirmacion.getString("intereses");
+                        phpCantidad=confirmacion.getString("cantidad");
+                        actualizarEstado1();
+                    }
+                    else{
+                        if(confirmacion.getString("mensaje").equals("fecha_vencida")) {
+                            cancelar.setEnabled(true);
+                            ejecutar.setEnabled(true);
+                            cantidad.setEnabled(true);
+                            Toast.makeText(getApplicationContext(), "Espera a la nueva fecha limite de pago", Toast.LENGTH_LONG).show();
+                        }
+                        else{
+                            if(confirmacion.getString("mensaje").equals("aprobado2")){
+                                phpNombreD=confirmacion.getString("nombreD");
+                                phpApellidoD=confirmacion.getString("apellidoD");
+                                phpDeuda=confirmacion.getString("deuda");
+                                phpIntereses=confirmacion.getString("intereses");
+                                phpCantidad=confirmacion.getString("cantidad");
+                                actualizarEstado2();
+                            }
+                            else {
+                                if (confirmacion.getString("mensaje").equals("saldo_insuficiente")) {
+                                    cancelar.setEnabled(true);
+                                    ejecutar.setEnabled(true);
+                                    cantidad.setEnabled(true);
+                                    Toast.makeText(getApplicationContext(), "El cliente no debe esa cantidad", Toast.LENGTH_LONG).show();
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Throwable error){
+                    ejecutar.setEnabled(true);
+                    Toast.makeText(getApplicationContext(),"Error 025:"+error.toString(),Toast.LENGTH_LONG).show();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                pagarPrestamo();
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("cuenta",numeroCuenta.getText().toString());
+                params.put("cantidad",cantidad.getText().toString());
+                params.put("cifrado", cifrado);
+                params.put("codigoLlave", "42");
+                return params;
+            }
+        };
+        RequestQueue requestQueue= Volley.newRequestQueue(getApplicationContext());
+        stringRequest.setRetryPolicy(new DefaultRetryPolicy(10000, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        requestQueue.add(stringRequest);
+    }
+    private void actualizarEstado1(){
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject jsonObject=new JSONObject(response);
+                    JSONArray jsonArray=jsonObject.getJSONArray("aprobacion");
+                    JSONObject confirmacion=jsonArray.getJSONObject(0);
+                    if(confirmacion.getString("mensaje").equals("aprobado")){
+                        datosOperador();
+                    }
+                }
+                catch (Throwable error){
+                    ejecutar.setEnabled(true);
+                    Toast.makeText(getApplicationContext(),"Error 0251:"+error.toString(),Toast.LENGTH_LONG).show();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                actualizarEstado1();
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("cuenta",numeroCuenta.getText().toString());
+                params.put("cantidad",phpCantidad);
+                params.put("cifrado", cifrado);
+                params.put("codigoLlave", "4201");
+                return params;
+            }
+        };
+        RequestQueue requestQueue= Volley.newRequestQueue(getApplicationContext());
+        stringRequest.setRetryPolicy(new DefaultRetryPolicy(10000, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        requestQueue.add(stringRequest);
+    }
+    private void actualizarEstado2(){
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject jsonObject=new JSONObject(response);
+                    JSONArray jsonArray=jsonObject.getJSONArray("aprobacion");
+                    JSONObject confirmacion=jsonArray.getJSONObject(0);
+                    if(confirmacion.getString("mensaje").equals("aprobado")){
+                        datosOperador();
+                    }
+                }
+                catch (Throwable error){
+                    ejecutar.setEnabled(true);
+                    Toast.makeText(getApplicationContext(),"Error 0252:"+error.toString(),Toast.LENGTH_LONG).show();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                ejecutar.setEnabled(true);
+                Toast.makeText(getApplicationContext(),"Error 026:"+error.toString(),Toast.LENGTH_LONG).show();
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("cuenta",numeroCuenta.getText().toString());
+                params.put("cantidad",cantidad.getText().toString());
+                params.put("restante",phpCantidad);
+                params.put("cifrado", cifrado);
+                params.put("codigoLlave", "4202");
+                return params;
+            }
+        };
+        RequestQueue requestQueue= Volley.newRequestQueue(getApplicationContext());
+        stringRequest.setRetryPolicy(new DefaultRetryPolicy(10000, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        requestQueue.add(stringRequest);
+    }
+    private void datosOperador(){
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject jsonObject=new JSONObject(response);
+                    JSONArray jsonArray=jsonObject.getJSONArray("aprobacion");
+                    JSONObject confirmacion=jsonArray.getJSONObject(0);
+                    if(confirmacion.getString("mensaje").equals("aprobado")){
+                        phpNombreO=confirmacion.getString("nombreO");
+                        phpApellidoO=confirmacion.getString("apellidoO");
+                        crearHistorial();
+                    }
+                }
+                catch (Throwable error){
+                    ejecutar.setEnabled(true);
+                    Toast.makeText(getApplicationContext(),"Error 0253:"+error.toString(),Toast.LENGTH_LONG).show();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                datosOperador();
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("cuentaO",cuentaN);
+                params.put("cifrado", cifrado);
+                params.put("codigoLlave", "4203");
+                return params;
+            }
+        };
+        RequestQueue requestQueue= Volley.newRequestQueue(getApplicationContext());
+        stringRequest.setRetryPolicy(new DefaultRetryPolicy(10000, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        requestQueue.add(stringRequest);
+    }
+    private void crearHistorial(){
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject jsonObject=new JSONObject(response);
+                    JSONArray jsonArray=jsonObject.getJSONArray("aprobacion");
+                    JSONObject confirmacion=jsonArray.getJSONObject(0);
+                    if(confirmacion.getString("mensaje").equals("aprobado")){
+                        phpFecha=confirmacion.getString("fecha");
+                        phpHora=confirmacion.getString("hora");
+                        datosImprimir();
+                    }
+                }
+                catch (Throwable error){
+                    ejecutar.setEnabled(true);
+                    Toast.makeText(getApplicationContext(),"Error 0254:"+error.toString(),Toast.LENGTH_LONG).show();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                crearHistorial();
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("nombreO",phpNombreO);
+                params.put("apellidoO",phpApellidoO);
+                params.put("cuentaO",cuentaN);
+                params.put("empresa",empresaN);
+                params.put("cantidad",cantidad.getText().toString());
+                params.put("nombreD",phpNombreD);
+                params.put("apellidoD",phpApellidoD);
+                params.put("cuenta",numeroCuenta.getText().toString());
+                params.put("cifrado", cifrado);
+                params.put("codigoLlave", "4204");
+                return params;
+            }
+        };
+        RequestQueue requestQueue= Volley.newRequestQueue(getApplicationContext());
+        stringRequest.setRetryPolicy(new DefaultRetryPolicy(10000, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        requestQueue.add(stringRequest);
+    }
+    private void datosImprimir(){
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject jsonObject=new JSONObject(response);
+                    JSONArray jsonArray=jsonObject.getJSONArray("aprobacion");
+                    JSONObject confirmacion=jsonArray.getJSONObject(0);
                     if(confirmacion.getString("mensaje").equals("aprobado")){
                         Toast.makeText(getApplicationContext(), "Pago realizado con exito", Toast.LENGTH_LONG).show();
                         cancelar.setVisibility(View.INVISIBLE);
@@ -166,44 +394,25 @@ public class PagarPrestamoActivity extends AppCompatActivity {
                         referenciaI=confirmacion.getString("referencia");
                         imprimirDialogo();
                     }
-                    else{
-                        if(confirmacion.getString("mensaje").equals("fecha_vencida")) {
-                            cancelar.setEnabled(true);
-                            ejecutar.setEnabled(true);
-                            cantidad.setEnabled(true);
-                            Toast.makeText(getApplicationContext(), "Espera a la nueva fecha limite de pago", Toast.LENGTH_LONG).show();
-                        }
-                        else{
-                            if(confirmacion.getString("mensaje").equals("saldo_insuficiente")) {
-                                cancelar.setEnabled(true);
-                                ejecutar.setEnabled(true);
-                                cantidad.setEnabled(true);
-                                Toast.makeText(getApplicationContext(), "El cliente no debe esa cantidad", Toast.LENGTH_LONG).show();
-                            }
-                        }
-                    }
                 }
                 catch (Throwable error){
                     ejecutar.setEnabled(true);
-                    Toast.makeText(getApplicationContext(),"Error 025:"+error.toString(),Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(),"Error 0255:"+error.toString(),Toast.LENGTH_LONG).show();
                 }
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                ejecutar.setEnabled(true);
-                Toast.makeText(getApplicationContext(),"Error 026:"+error.toString(),Toast.LENGTH_LONG).show();
+                datosImprimir();
             }
         }){
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
                 Map<String, String> params = new HashMap<>();
-                params.put("cuenta",numeroCuenta.getText().toString());
-                params.put("cuentaO",cuentaN);
-                params.put("cantidad",cantidad.getText().toString());
-                params.put("empresa",empresaN);
+                params.put("fechaI",phpFecha);
+                params.put("horaI",phpHora);
                 params.put("cifrado", cifrado);
-                params.put("codigoLlave", "42");
+                params.put("codigoLlave", "4205");
                 return params;
             }
         };

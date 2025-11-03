@@ -293,7 +293,8 @@
                                     android:text="deposito"
                                     android:textColor="#FFFFFF"
                                     android:textSize="16sp"
-                                    android:textStyle="bold" />
+                                    android:textStyle="bold"
+                                    android:visibility="gone" />
 
                                 <Button
                                     android:id="@+id/retiro50"
@@ -315,7 +316,8 @@
                                     android:text="transferencia"
                                     android:textColor="#FFFFFF"
                                     android:textSize="16sp"
-                                    android:textStyle="bold" />
+                                    android:textStyle="bold"
+                                    android:visibility="gone" />
 
                                 <Button
                                     android:id="@+id/recargar50"
@@ -326,7 +328,8 @@
                                     android:text="recargar historial"
                                     android:textColor="#FFFFFF"
                                     android:textSize="16sp"
-                                    android:textStyle="bold" />
+                                    android:textStyle="bold"
+                                    android:visibility="gone" />
                             </LinearLayout>
                         </LinearLayout>
                     </HorizontalScrollView>

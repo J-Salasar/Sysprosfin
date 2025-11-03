@@ -259,7 +259,8 @@
                                 android:text="pago de prestamo"
                                 android:textColor="#FFFFFF"
                                 android:textSize="16sp"
-                                android:textStyle="bold" />
+                                android:textStyle="bold"
+                                android:visibility="gone" />
 
                             <Button
                                 android:id="@+id/notificacion5551"
@@ -281,7 +282,8 @@
                                 android:text="transferencia"
                                 android:textColor="#FFFFFF"
                                 android:textSize="16sp"
-                                android:textStyle="bold" />
+                                android:textStyle="bold"
+                                android:visibility="gone" />
 
                             <Button
                                 android:id="@+id/pagoPrestamos5551"
@@ -303,7 +305,8 @@
                                 android:text="recargar historial"
                                 android:textColor="#FFFFFF"
                                 android:textSize="16sp"
-                                android:textStyle="bold" />
+                                android:textStyle="bold"
+                                android:visibility="gone" />
                         </LinearLayout>
 
                     </LinearLayout>

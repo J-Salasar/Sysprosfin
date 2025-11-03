@@ -145,6 +145,41 @@
                 app:srcCompat="@android:drawable/ic_menu_send" />
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/linearLayout15"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginEnd="10dp"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/linearLayout14"
+            app:layout_constraintVertical_bias="0.0">
+
+            <EditText
+                android:id="@+id/filtardeuda55"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ems="10"
+                android:hint="Filtrado por deuda"
+                android:inputType="numberDecimal"
+                android:textColor="#000000"
+                android:textColorHint="#222222" />
+
+            <ImageButton
+                android:id="@+id/enviarfiltrarD55"
+                style="@android:style/Holo.Light.ButtonBar"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="#8C8A8A"
+                app:srcCompat="@android:drawable/ic_media_play" />
+        </LinearLayout>
+
         <TextView
             android:id="@+id/activos55"
             android:layout_width="0dp"
@@ -160,7 +195,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.79"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/linearLayout14"
+            app:layout_constraintTop_toBottomOf="@+id/linearLayout15"
             app:layout_constraintVertical_bias="0.0" />
 
         <TextView

@@ -345,23 +345,23 @@ public class PrincipalActivity extends AppCompatActivity {
                     JSONObject confirmacion=jsonArray.getJSONObject(0);
                     if(confirmacion.getString("mensaje").equals("encontrado")){
                         txtView_nombre_apellido_principal.setText(confirmacion.getString("nombre")+" "+confirmacion.getString("apellido"));
-                        imageBt_recargar_principal.setVisibility(View.VISIBLE);
+                        //imageBt_recargar_principal.setVisibility(View.VISIBLE);
                     }
                     else{
                         Toast.makeText(getApplicationContext(),"Error al encontrarlo",Toast.LENGTH_LONG).show();
-                        imageBt_recargar_principal.setVisibility(View.VISIBLE);
+                        //imageBt_recargar_principal.setVisibility(View.VISIBLE);
                     }
                 }
                 catch (Throwable error){
                     Toast.makeText(getApplicationContext(),"Error 073:"+error.toString(),Toast.LENGTH_LONG).show();
-                    imageBt_recargar_principal.setVisibility(View.VISIBLE);
+                    //imageBt_recargar_principal.setVisibility(View.VISIBLE);
                 }
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 Toast.makeText(getApplicationContext(),"Error 074:"+error.toString(),Toast.LENGTH_LONG).show();
-                imageBt_recargar_principal.setVisibility(View.VISIBLE);
+                //imageBt_recargar_principal.setVisibility(View.VISIBLE);
             }
         }){
             @Override

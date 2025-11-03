@@ -112,7 +112,7 @@ public class RegistroActivity extends AppCompatActivity {
                                 if(validarCampos(editxt_clave_registro.getText().toString().trim(),6)){
                                     if(checkBox_politicas_registro.isChecked()){
                                         desactivarFunciones();
-                                        registrarDatos();
+                                        validarCorreo();
                                     }
                                     else{
                                         Toast.makeText(getApplicationContext(),"Debes aceptar las politicas",Toast.LENGTH_LONG).show();
@@ -202,6 +202,129 @@ public class RegistroActivity extends AppCompatActivity {
             }
         }
     }
+    public void validarCorreo(){
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject jsonObject=new JSONObject(response);
+                    JSONArray jsonArray=jsonObject.getJSONArray("aprobacion");
+                    JSONObject confirmacion=jsonArray.getJSONObject(0);
+                    if(confirmacion.getString("mensaje").equals("correo_repetido")){
+                        Toast.makeText(getApplicationContext(),"Correo existente",Toast.LENGTH_LONG).show();
+                        activarFunciones();
+                    }
+                    else{
+                        if(confirmacion.getString("mensaje").equals("no_correo_repetido")){
+                            validarUsuario();
+                        }
+                    }
+                }
+                catch (Throwable error){
+                    Toast.makeText(getApplicationContext(),"Error 0751:"+error.toString(),Toast.LENGTH_LONG).show();
+                    activarFunciones();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                validarCorreo();
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("correo", editxt_correo_registro.getText().toString().trim());
+                params.put("cifrado", cifrado);
+                params.put("codigoLlave","1");
+                return params;
+            }
+        };
+        RequestQueue requestQueue= Volley.newRequestQueue(getApplicationContext());
+        requestQueue.add(stringRequest);
+    }
+    public void validarUsuario(){
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject jsonObject=new JSONObject(response);
+                    JSONArray jsonArray=jsonObject.getJSONArray("aprobacion");
+                    JSONObject confirmacion=jsonArray.getJSONObject(0);
+                    if(confirmacion.getString("mensaje").equals("usuario_repetido")){
+                        Toast.makeText(getApplicationContext(),"Usuario existente",Toast.LENGTH_LONG).show();
+                        activarFunciones();
+                    }
+                    else{
+                        if(confirmacion.getString("mensaje").equals("no_usuario_repetido")){
+                            validarDNI();
+                        }
+                    }
+                }
+                catch (Throwable error){
+                    Toast.makeText(getApplicationContext(),"Error 0752:"+error.toString(),Toast.LENGTH_LONG).show();
+                    activarFunciones();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                validarUsuario();
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("usuario", editxt_usuario_registro.getText().toString().trim());
+                params.put("cifrado", cifrado);
+                params.put("codigoLlave","101");
+                return params;
+            }
+        };
+        RequestQueue requestQueue= Volley.newRequestQueue(getApplicationContext());
+        requestQueue.add(stringRequest);
+    }
+    public void validarDNI(){
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject jsonObject=new JSONObject(response);
+                    JSONArray jsonArray=jsonObject.getJSONArray("aprobacion");
+                    JSONObject confirmacion=jsonArray.getJSONObject(0);
+                    if(confirmacion.getString("mensaje").equals("identidad_repetida")){
+                        Toast.makeText(getApplicationContext(),"DNI existente",Toast.LENGTH_LONG).show();
+                        activarFunciones();
+                    }
+                    else {
+                        if(confirmacion.getString("mensaje").equals("no_identidad_repetida")){
+                            registrarDatos();
+                        }
+                    }
+                }
+                catch (Throwable error){
+                    Toast.makeText(getApplicationContext(),"Error 0753:"+error.toString(),Toast.LENGTH_LONG).show();
+                    activarFunciones();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                validarDNI();
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("dni", editxt_dni_registro.getText().toString().trim());
+                params.put("cifrado", cifrado);
+                params.put("codigoLlave","102");
+                return params;
+            }
+        };
+        RequestQueue requestQueue= Volley.newRequestQueue(getApplicationContext());
+        requestQueue.add(stringRequest);
+    }
     public void registrarDatos(){
         String salt= BCrypt.gensalt(cargarTrabajo);
         String password= BCrypt.hashpw(editxt_clave_registro.getText().toString().trim(),salt);
@@ -242,7 +365,7 @@ public class RegistroActivity extends AppCompatActivity {
                     }
                 }
                 catch (Throwable error){
-                    Toast.makeText(getApplicationContext(),"Error 075:"+error.toString(),Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(),"Error 0754:"+error.toString(),Toast.LENGTH_LONG).show();
                     activarFunciones();
                 }
             }
@@ -264,7 +387,7 @@ public class RegistroActivity extends AppCompatActivity {
                 params.put("usuario", editxt_usuario_registro.getText().toString().trim());
                 params.put("clave", password);
                 params.put("cifrado", cifrado);
-                params.put("codigoLlave","1");
+                params.put("codigoLlave","103");
                 return params;
             }
         };

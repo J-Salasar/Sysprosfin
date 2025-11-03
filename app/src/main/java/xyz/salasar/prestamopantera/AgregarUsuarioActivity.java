@@ -188,8 +188,7 @@ public class AgregarUsuarioActivity extends AppCompatActivity {
                     JSONArray jsonArray=jsonObject.getJSONArray("aprobacion");
                     JSONObject confirmacion=jsonArray.getJSONObject(0);
                     if(confirmacion.getString("mensaje").equals("aprobado")){
-                        Toast.makeText(getApplicationContext(),"Usuario agregado",Toast.LENGTH_SHORT).show();
-                        listaSolicitud();
+                        cuentaCreada();
                     }
                     else{
                         Toast.makeText(getApplicationContext(),"Usuario ya agregado ",Toast.LENGTH_SHORT).show();
@@ -203,18 +202,123 @@ public class AgregarUsuarioActivity extends AppCompatActivity {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Toast.makeText(getApplicationContext(),"Error 006:"+error.toString(),Toast.LENGTH_LONG).show();
+                agregarUsuario();
             }
         }){
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
                 Map<String, String> params = new HashMap<>();
                 params.put("usuario", usuarioC);
-                params.put("usuarioP", usuario);
                 params.put("empresa", empresa);
-                params.put("id", idC);
                 params.put("cifrado", cifrado);
                 params.put("codigoLlave", "9");
+                return params;
+            }
+        };
+        RequestQueue requestQueue= Volley.newRequestQueue(getApplicationContext());
+        stringRequest.setRetryPolicy(new DefaultRetryPolicy(10000, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        requestQueue.add(stringRequest);
+    }
+    public void cuentaCreada(){
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject jsonObject=new JSONObject(response);
+                    JSONArray jsonArray=jsonObject.getJSONArray("aprobacion");
+                    JSONObject confirmacion=jsonArray.getJSONObject(0);
+                    if(confirmacion.getString("mensaje").equals("cuenta_creada")){
+                        sumandoEmpresa();
+                    }
+                }
+                catch (Throwable error){
+                    Toast.makeText(getApplicationContext(),"Error 0051:"+error.toString(),Toast.LENGTH_LONG).show();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                cuentaCreada();
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("usuario", usuarioC);
+                params.put("empresa", empresa);
+                params.put("cifrado", cifrado);
+                params.put("codigoLlave", "901");
+                return params;
+            }
+        };
+        RequestQueue requestQueue= Volley.newRequestQueue(getApplicationContext());
+        stringRequest.setRetryPolicy(new DefaultRetryPolicy(10000, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        requestQueue.add(stringRequest);
+    }
+    public void sumandoEmpresa(){
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject jsonObject=new JSONObject(response);
+                    JSONArray jsonArray=jsonObject.getJSONArray("aprobacion");
+                    JSONObject confirmacion=jsonArray.getJSONObject(0);
+                    if(confirmacion.getString("mensaje").equals("sumado_empresa")){
+                        solicitudEliminada();
+                    }
+                }
+                catch (Throwable error){
+                    Toast.makeText(getApplicationContext(),"Error 0052:"+error.toString(),Toast.LENGTH_LONG).show();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                sumandoEmpresa();
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("empresa", empresa);
+                params.put("cifrado", cifrado);
+                params.put("codigoLlave", "902");
+                return params;
+            }
+        };
+        RequestQueue requestQueue= Volley.newRequestQueue(getApplicationContext());
+        stringRequest.setRetryPolicy(new DefaultRetryPolicy(10000, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        requestQueue.add(stringRequest);
+    }
+    public void solicitudEliminada(){
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject jsonObject=new JSONObject(response);
+                    JSONArray jsonArray=jsonObject.getJSONArray("aprobacion");
+                    JSONObject confirmacion=jsonArray.getJSONObject(0);
+                    if(confirmacion.getString("mensaje").equals("solicitud_eliminada")){
+                        Toast.makeText(getApplicationContext(),"Usuario agregado",Toast.LENGTH_SHORT).show();
+                        listaSolicitud();
+                    }
+                }
+                catch (Throwable error){
+                    Toast.makeText(getApplicationContext(),"Error 0053:"+error.toString(),Toast.LENGTH_LONG).show();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                solicitudEliminada();
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("id", idC);
+                params.put("cifrado", cifrado);
+                params.put("codigoLlave", "903");
                 return params;
             }
         };

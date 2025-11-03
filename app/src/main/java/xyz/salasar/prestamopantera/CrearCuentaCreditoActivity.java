@@ -100,7 +100,7 @@ public class CrearCuentaCreditoActivity extends AppCompatActivity {
     }
     private void validarCampos(){
         if(verificar(nombreEmpresa.getText().toString().trim(),1)){
-            bt_cerrarpanelcuentaprestamo.setEnabled(false);
+            //bt_cerrarpanelcuentaprestamo.setEnabled(false);
             bt_guardarpanelcuentaprestamo.setEnabled(false);
             cuentaPrestamos();
         }
@@ -182,14 +182,14 @@ public class CrearCuentaCreditoActivity extends AppCompatActivity {
                     else{
                         if(confirmacion.getString("mensaje").equals("existe")){
                             Toast.makeText(getApplicationContext(),"Ya existe una cuenta con ese nombre",Toast.LENGTH_LONG).show();
-                            bt_cerrarpanelcuentaprestamo.setEnabled(true);
+                            //bt_cerrarpanelcuentaprestamo.setEnabled(true);
                             bt_guardarpanelcuentaprestamo.setEnabled(true);
                         }
                     }
                 }
                 catch (Throwable error){
                     Toast.makeText(getApplicationContext(),"Error 019:"+error.toString(),Toast.LENGTH_LONG).show();
-                    bt_cerrarpanelcuentaprestamo.setEnabled(true);
+                    //bt_cerrarpanelcuentaprestamo.setEnabled(true);
                     bt_guardarpanelcuentaprestamo.setEnabled(true);
                 }
             }
@@ -197,7 +197,7 @@ public class CrearCuentaCreditoActivity extends AppCompatActivity {
             @Override
             public void onErrorResponse(VolleyError error) {
                 Toast.makeText(getApplicationContext(),"Error 020:"+error.toString(),Toast.LENGTH_LONG).show();
-                bt_cerrarpanelcuentaprestamo.setEnabled(true);
+                //bt_cerrarpanelcuentaprestamo.setEnabled(true);
                 bt_guardarpanelcuentaprestamo.setEnabled(true);
             }
         }){

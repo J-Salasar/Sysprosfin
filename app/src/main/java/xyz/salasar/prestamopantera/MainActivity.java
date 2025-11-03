@@ -262,8 +262,7 @@ public class MainActivity extends AppCompatActivity {
                     if(confirmacion.getString("mensaje").equals("activo")){
                         boolean acceso= BCrypt.checkpw(editxt_clave_inicio_sesion.getText().toString().trim(),confirmacion.getString("clave"));
                         if(acceso){
-                            recordarUsuario();
-                            pantallaPrincipal();
+                            actualizarFecha();
                         }
                         else{
                             Toast.makeText(getApplicationContext(),"Usuario o contraseña incorrectos",Toast.LENGTH_LONG).show();
@@ -303,8 +302,7 @@ public class MainActivity extends AppCompatActivity {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Toast.makeText(getApplicationContext(),"Error 001:"+error.toString(),Toast.LENGTH_LONG).show();
-                activarFunciones();
+                acceder();
             }
         }){
             @Override
@@ -313,6 +311,42 @@ public class MainActivity extends AppCompatActivity {
                 params.put("usuario", editxt_usuario_inicio_sesion.getText().toString().trim());
                 params.put("cifrado", cifrado);
                 params.put("codigoLlave", "3");
+                return params;
+            }
+        };
+        RequestQueue requestQueue= Volley.newRequestQueue(getApplicationContext());
+        requestQueue.add(stringRequest);
+    }
+    public void actualizarFecha(){
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject jsonObject=new JSONObject(response);
+                    JSONArray jsonArray=jsonObject.getJSONArray("aprobacion");
+                    JSONObject confirmacion=jsonArray.getJSONObject(0);
+                    if(confirmacion.getString("mensaje").equals("fecha_actualizada")){
+                        recordarUsuario();
+                        pantallaPrincipal();
+                    }
+                }
+                catch (Throwable error){
+                    Toast.makeText(getApplicationContext(), "Error 0021:"+error.toString(),Toast.LENGTH_LONG).show();
+                    activarFunciones();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                acceder();
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("usuario", editxt_usuario_inicio_sesion.getText().toString().trim());
+                params.put("cifrado", cifrado);
+                params.put("codigoLlave", "301");
                 return params;
             }
         };
